@@ -36,13 +36,17 @@ Glocke: Akustisches Signal für Phasenwechsel.
 
 Online Nutzung
 
-Das Projekt ist unter folgendem Link verfügbar:
+Das Projekt ist unter folgendem Link zu besichtigen:
+
+https://ugh2000.github.io/Kreidetafel-plus/
+
+Der Code ist unter folgendem Link verfügbar:
 
 https://github.com/ugh2000/Kreidetafel-plus
 
 Lokale Nutzung (USB-Stick / Offline)
 
-Lade das Repository als ZIP-Datei herunter (Code -> Download ZIP).
+Lade das Repository als ZIP-Datei herunter ( https://github.com/ugh2000/Kreidetafel-plus -> Code -> Download ZIP).
 
 Entpacke den Ordner.
 
@@ -74,7 +78,7 @@ asciimathml-master/: Lokale Skripte zur Darstellung mathematischer Formeln (Asci
 
 🛠️ Entwicklung:
 
-Konzept & Realisierung: UGH2000
+Konzept & Realisierung: ugh2000
 
 Co-Coding & Support: Dieses Projekt entstand im kreativen Dialog mit Gemini. Die KI fungierte als geduldiger Co-Coder bei der Strukturierung, Fehlersuche und Umsetzung der didaktischen Ideen.
 
