@@ -68,6 +68,10 @@ iframe.js: Verwaltung der externen Tools.
 
 tinymce/: Lokale Installation des Editors.
 
+sound/: Enthält Audiodateien (z. B. für die Glocke).
+
+asciimathml-master/: Lokale Skripte zur Darstellung mathematischer Formeln (AsciiMath).
+
 ⚖️ Lizenzen & Credits
 
 Dieses Projekt verwendet Open-Source-Komponenten:
