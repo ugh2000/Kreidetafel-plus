@@ -1,0 +1,11 @@
+Kategorie;Titel;Inhalt
+Analysis;Nullstellen; §§f(x)=0§§ 
+Analysis;Ableitung; §§f'(x)§§ 
+Analysis;Extrema (Notw.); §§f'(x)=0§§ 
+Analysis;Integral; §§int_a^b f(x) dx§§ 
+Vektoren;Vektor (3D); §§vec a = ((x_1),(x_2),(x_3))§§ 
+Vektoren;Skalarprodukt; §§vec a * vec b = 0§§ 
+Vektoren;Ebene (Parameter); §§E: vec x = vec p + r * vec u + s * vec v§§ 
+Grundlagen;Wurzel; §§sqrt(x)§§ 
+Grundlagen;Bruch; §§a/b§§ 
+Grundlagen;pq-Formel; §§x_{1,2} = -p/2 +- sqrt((p/2)^2 - q)§§

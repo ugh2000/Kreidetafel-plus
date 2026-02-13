@@ -1,0 +1,60 @@
+body { 
+    font-family: 'Calibri', 'Candara', 'Segoe', 'Segoe UI', 'Optima', 'Arial', sans-serif; 
+    color: #222; 
+    font-size: 17px; 
+    line-height: 1.6; 
+}
+h1 { 
+    color: #004f62; 
+    font-size: 2.2em; 
+    border-bottom: 2px solid #1f93b4; 
+    padding-bottom: 8px; 
+    margin-top: 25px; 
+    margin-bottom: 15px; 
+    font-weight: 700; 
+}
+h2 { 
+    color: #1f93b4; 
+    font-size: 1.8em; 
+    margin-top: 20px; 
+    margin-bottom: 12px; 
+    font-weight: 600; 
+}
+h3 { 
+    color: #444; 
+    font-size: 1.3em; 
+    border-left: 5px solid #004f62; 
+    padding: 5px 10px; 
+    background: #f1f5f9; 
+    margin-top: 18px; 
+    margin-bottom: 10px; 
+    font-weight: 600; 
+}
+h4 { 
+    color: #1f93b4; 
+    font-size: 1.1em; 
+    text-transform: uppercase; 
+    letter-spacing: 0.05em; 
+    margin-top: 15px; 
+    margin-bottom: 8px; 
+    font-weight: bold; 
+}
+a { 
+    color: #1f93b4; 
+    text-decoration: none; 
+    border-bottom: 1px dotted #1f93b4; 
+}
+a:hover { 
+    color: #004f62; 
+    border-bottom: 1px solid #004f62; 
+}
+ul { 
+    list-style-type: disc; 
+    padding-left: 20px; 
+}
+ul li::marker { 
+    color: #004f62; 
+}
+.live-counter, .live-dice, .live-traffic-light { 
+    margin: 5px 0; 
+}

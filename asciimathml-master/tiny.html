@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TinyMCE Diagnose</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #f0f0f0; }
+        .box { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        h2 { margin-top: 0; }
+        .status { padding: 10px; border-radius: 4px; font-weight: bold; margin-bottom: 10px; }
+        .success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        .error { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+        code { background: #eee; padding: 2px 4px; border-radius: 4px; }
+    </style>
+
+    <!-- 
+       HIER IST DER PFAD ZUM LOKALEN TINYMCE.
+       Er muss relativ zu dieser tiny.html stimmen.
+       Laut deiner Angabe: Editor-modular/tinymce/js/tinymce/tinymce.min.js
+       Wenn tiny.html in Editor-modular liegt, ist der Pfad:
+    -->
+    <script src="tinymce/js/tinymce/tinymce.min.js"></script>
+</head>
+<body>
+
+    <h1>TinyMCE Diagnose-Tool</h1>
+
+    <!-- TEST 1: DATEI GEFUNDEN? -->
+    <div class="box">
+        <h2>Test 1: Wird die Datei gefunden?</h2>
+        <div id="status1" class="status">Prüfe...</div>
+        <p>Erwarteter Pfad: <code>tinymce/js/tinymce/tinymce.min.js</code></p>
+    </div>
+
+    <!-- TEST 2: EDITOR INITIALISIERUNG -->
+    <div class="box">
+        <h2>Test 2: Editor (Offline-Modus)</h2>
+        <p>Wenn hier ein Editor erscheint, funktioniert der Download und der Pfad. Wenn er weiß bleibt oder Punkte zeigt, fehlen Skin-Dateien.</p>
+        <textarea id="myeditor">Hallo Welt! Wenn du das lesen kannst, geht es.</textarea>
+    </div>
+
+    <script>
+        // DIAGNOSE LOGIK
+        const statusEl = document.getElementById('status1');
+        
+        if (typeof tinymce !== 'undefined') {
+            statusEl.textContent = "✅ ERFOLG: tinymce.min.js wurde geladen!";
+            statusEl.className = "status success";
+
+            // VERSUCH ZU INITIALISIEREN
+            try {
+                tinymce.init({
+                    selector: '#myeditor',
+                    height: 300,
+                    
+                    // WICHTIG FÜR LOKALE NUTZUNG (Version 6 & 7):
+                    license_key: 'gpl',     // Verhindert Lizenz-Blockade
+                    promotion: false,       // Entfernt "Upgrade" Button
+                    
+                    // WICHTIG GEGEN DAUERLADEN (3 PUNKTE):
+                    // Verhindert, dass TinyMCE versucht, CSS aus dem Internet oder falschen Pfaden zu laden
+                    content_css: false, 
+                    content_style: 'body { font-family: Helvetica, Arial, sans-serif; font-size: 16px }',
+                    
+                    // Skins müssen im Ordner tinymce/js/tinymce/skins/ui/oxide liegen
+                    skin: 'oxide', 
+                    
+                    setup: function (editor) {
+                        editor.on('init', function () {
+                            console.log('Editor erfolgreich initialisiert.');
+                        });
+                    }
+                });
+            } catch (e) {
+                alert("Fehler beim Starten von TinyMCE: " + e.message);
+            }
+
+        } else {
+            statusEl.textContent = "❌ FEHLER: tinymce Variable nicht gefunden. Der Pfad ist falsch!";
+            statusEl.className = "status error";
+            console.error("TinyMCE JS Datei konnte nicht geladen werden.");
+        }
+    </script>
+</body>
+</html>

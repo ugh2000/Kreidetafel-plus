@@ -1,0 +1,55 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
+
+body { font-family: 'Inter', sans-serif; transition: background-color 0.3s, color 0.3s; }
+
+/* TinyMCE & MathJax Anpassungen */
+.tox-tinymce { border-radius: 0.5rem !important; border: 1px solid #e2e8f0 !important; transition: border-color 0.3s; }
+.dark .tox-tinymce { border-color: #475569 !important; }
+.dark .mjx-chtml { color: #e2e8f0 !important; }
+
+#htmlPreview { line-height: 1.8; }
+.mjx-chtml { font-size: 115% !important; }
+#htmlPreview code { background: transparent !important; border: none !important; font-family: inherit; color: inherit; padding: 0; }
+
+/* Resizer Styling */
+#resizer {
+    height: 12px; background-color: #f1f5f9; border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0;
+    cursor: row-resize; display: flex; justify-content: center; align-items: center; transition: background-color 0.2s;
+}
+.dark #resizer { background-color: #1e293b; border-color: #334155; }
+#resizer:hover { background-color: #e2e8f0; }
+.dark #resizer:hover { background-color: #334155; }
+#resizer::after {
+    content: ""; width: 40px; height: 4px; border-top: 2px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; display: block;
+}
+.dark #resizer::after { border-color: #64748b; }
+
+/* Correction Toolbar Animation */
+#correctionToolbar { transition: transform 0.3s ease-in-out, opacity 0.3s; transform: translateY(100%); opacity: 0; }
+#correctionToolbar.active { transform: translateY(0); opacity: 1; }
+
+/* Print Styles - Alles Verstecken außer dem Druckbereich */
+#printSection { display: none; }
+
+@media print {
+    body > * { display: none !important; }
+    html, body { margin: 0 !important; padding: 0 !important; height: 100%; overflow: visible !important; background: white !important; color: black !important; }
+    .dark { color: black !important; background: white !important; } 
+
+    #printSection { 
+        display: block !important; position: absolute; top: 0; left: 0; width: 210mm; min-height: 297mm;
+        padding: 25mm 30mm 20mm 20mm; box-sizing: border-box; background: white; z-index: 9999;
+        font-family: 'Times New Roman', Times, serif; font-size: 12pt;
+    }
+    @page { size: A4; margin: 0; }
+    .print-running-header {
+        position: fixed; top: 0; left: 0; width: 100%; height: 20mm; padding: 10mm 30mm 0 20mm;
+        display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid #000;
+        background: white; font-size: 10pt; color: #444; z-index: 10000;
+    }
+    .print-body-wrapper { position: relative; font-size: 12pt; line-height: 28px; text-align: justify; width: 100%; }
+    .line-numbers { position: absolute; left: -12mm; top: 0; width: 8mm; height: 100%; text-align: right; font-size: 8pt; color: #999; pointer-events: none; }
+    .ln-marker { position: absolute; right: 0; width: 100%; height: 28px; display: flex; align-items: center; justify-content: flex-end; }
+    #printContent p { margin: 0; margin-bottom: 0; }
+    .mjx-chtml { color: black !important; } 
+}

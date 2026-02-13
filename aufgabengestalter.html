@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Tafel Aufgabengestalter</title>
+    <!-- Schriftart Inter -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    
+    <style>
+        body { 
+            background-color: #f3f4f6; 
+            font-family: 'Inter', sans-serif;
+        }
+        #boardContent::-webkit-scrollbar { width: 8px; }
+        #boardContent::-webkit-scrollbar-track { background: #f1f5f9; }
+        #boardContent::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        #boardContent::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        .board-prose p { margin-bottom: 1em; }
+        .board-prose h1, .board-prose h2, .board-prose h3 { margin-top: 0.5em; margin-bottom: 0.5em; line-height: 1.2; }
+        
+        input[type=range] { -webkit-appearance: none; background: transparent; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: #ffffff; cursor: pointer; margin-top: -6px; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #475569; border-radius: 2px; }
+        
+        @keyframes blink-red { 0%, 100% { color: #f87171; } 50% { color: #ef4444; } }
+        .timer-expired { animation: blink-red 1s infinite; }
+    </style>
+</head>
+<body class="text-gray-800 p-8 min-h-screen flex items-center justify-center">
+
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-5xl p-8 relative z-10">
+        <!-- Header -->
+        <div class="flex justify-between items-center border-b border-gray-200 pb-6 mb-6">
+            <div>
+                <h1 class="text-3xl font-bold text-[#004f62]">Aufgabengestalter</h1>
+                <p class="text-gray-500 mt-2">Erstelle personalisierte Links für die E-Tafel.</p>
+            </div>
+            <a href="index.html" class="text-[#1f93b4] hover:underline font-bold flex items-center gap-1">
+                Zum Editor
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+            </a>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+            
+            <!-- Linke Seite: Eingabe -->
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Aufgabentext / Inhalt</label>
+                    <textarea id="taskContent" class="w-full h-48 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1f93b4] outline-none resize-none font-mono text-sm" placeholder="Gib hier die Aufgabenstellung ein..."></textarea>
+                    <p class="text-xs text-gray-400 mt-1">HTML erlaubt (z.B. &lt;b&gt;Fett&lt;/b&gt;).</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Optionen</label>
+                        <div class="space-y-2">
+                            <!-- Wortlimit -->
+                            <div class="flex items-center space-x-2">
+                                <input type="number" id="taskLimit" value="0" min="0" step="50" class="w-20 p-2 border border-gray-300 rounded-lg text-sm" placeholder="Limit">
+                                <span class="text-xs text-gray-500">Wörter</span>
+                            </div>
+                            
+                            <!-- QR Code Modus -->
+                            <label class="flex items-center space-x-2 cursor-pointer pt-2" title="Deaktivieren, wenn der Text sehr lang ist, um den QR-Code scannbar zu halten.">
+                                <input type="checkbox" id="includeTextInLink" class="w-4 h-4 text-[#004f62] rounded border-gray-300 focus:ring-[#1f93b4]" checked>
+                                <span class="text-xs font-bold text-gray-600">Aufgabenstellung in Link einbetten</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Abgabe-Timer</label>
+                        <div class="p-3 border border-gray-200 rounded-lg bg-gray-50">
+                            <div class="flex items-center space-x-2 mb-2">
+                                <input type="checkbox" id="addTimer" class="w-5 h-5 text-[#004f62] rounded focus:ring-[#1f93b4]" onchange="toggleTimerInput(this)">
+                                <span class="text-sm font-medium text-gray-700">Aktivieren</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <input type="number" id="timerMinutes" value="15" min="1" max="180" disabled class="w-16 p-1 text-sm border border-gray-300 rounded text-center disabled:opacity-50" oninput="updateAbgabeVorschau()">
+                                <span class="text-xs text-gray-500">Minuten</span>
+                            </div>
+                            <div id="abgabeVorschau" class="text-xs text-[#004f62] font-bold mt-2 opacity-0 transition-opacity">
+                                Abgabe ca.: --:-- Uhr
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="generateLink()" class="w-full bg-[#004f62] hover:bg-[#003d4d] text-white font-bold py-3 rounded-lg shadow-md transition-transform transform active:scale-95 flex justify-center items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+                    Link Generieren
+                </button>
+            </div>
+
+            <!-- Rechte Seite: Ergebnis -->
+            <div class="bg-gray-50 rounded-xl p-6 border border-gray-200 flex flex-col items-center justify-center text-center space-y-6">
+                
+                <div id="qrContainer" class="bg-white p-4 rounded-lg shadow-sm w-48 h-48 flex items-center justify-center text-gray-300 text-sm border border-gray-200 relative">
+                    (QR Code erscheint hier)
+                </div>
+
+                <div class="w-full">
+                    <p class="text-sm font-bold text-gray-600 mb-2 text-left">Generierter Link:</p>
+                    <div class="relative flex items-center">
+                        <input type="text" id="resultLink" readonly class="w-full p-3 bg-white border border-gray-300 rounded-lg text-sm text-gray-600 font-mono pr-24 focus:outline-none">
+                        <button onclick="copyLink()" class="absolute right-1 top-1 bottom-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-3 rounded text-xs transition">
+                            Kopieren
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 w-full">
+                    <button onclick="openBoardView()" class="bg-[#1f93b4] hover:bg-[#157a96] text-white py-2 px-4 rounded-lg font-bold shadow transition flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h18v18H3zM9 9h6M9 15h6" /></svg>
+                        Tafel-Ansicht
+                    </button>
+                    <a id="testBtn" href="#" target="_blank" class="flex items-center justify-center text-[#1f93b4] hover:text-[#004f62] font-bold border border-[#1f93b4] hover:bg-blue-50 rounded-lg transition opacity-50 pointer-events-none">
+                        Link testen &rarr;
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAFEL ANSICHT MODAL -->
+    <div id="boardModal" class="fixed inset-0 bg-[#0f172a] z-50 hidden flex-col animate-fade-in">
+        
+        <!-- Menüleiste oben -->
+        <div class="bg-[#004f62] text-white px-6 py-3 flex justify-between items-center shadow-md border-b border-[#1f93b4]">
+            <div class="flex items-center gap-6">
+                <span class="text-lg font-bold tracking-wide text-white">Präsentationsmodus</span>
+                
+                <!-- BOARD TIMER ANZEIGE -->
+                <div id="boardTimerContainer" class="hidden items-center bg-[#0f172a] border border-[#1f93b4] rounded-lg px-3 py-1 gap-3">
+                    <div class="flex items-baseline gap-1">
+                        <span class="text-xs text-gray-400 uppercase font-bold">Abgabe:</span>
+                        <span id="boardTimerDisplay" class="font-mono text-xl font-bold text-[#1f93b4]">00:00</span>
+                    </div>
+                    <!-- Timer Controls für Lehrer -->
+                    <div class="flex gap-1 border-l border-gray-700 pl-2">
+                        <button onclick="adjustBoardTimer(1)" class="text-xs bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded text-white font-bold" title="+1 Minute">+1m</button>
+                        <button onclick="adjustBoardTimer(-1)" class="text-xs bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded text-white font-bold" title="-1 Minute">-1m</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Zoom Controls -->
+            <div class="flex items-center gap-4 bg-[#0f172a]/50 px-4 py-2 rounded-full border border-[#1f93b4]">
+                <button onclick="resetZoom()" class="text-gray-400 hover:text-white transition" title="Zoom zurücksetzen">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                    </svg>
+                </button>
+                
+                <input type="range" id="zoomSlider" min="0.5" max="3.0" step="0.1" value="1.0" oninput="updateZoom(this.value)" class="w-32 cursor-pointer">
+                
+                <span id="zoomValue" class="font-mono text-sm w-12 text-right text-gray-300">100%</span>
+            </div>
+
+            <button onclick="closeBoardView()" class="bg-[#9e1b32] hover:bg-[#7a1526] text-white px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                Schließen
+            </button>
+        </div>
+        
+        <!-- Hauptinhalt -->
+        <div class="flex-1 flex flex-col lg:flex-row gap-4 lg:gap-8 items-stretch justify-center h-full overflow-hidden p-6 bg-[#0f172a]">
+            <!-- Linke Seite: Aufgabeninhalt -->
+            <div class="flex-[2] bg-white text-gray-800 p-8 md:p-12 rounded-xl shadow-2xl flex flex-col overflow-hidden border-l-8 border-[#004f62]">
+                <h2 class="text-3xl font-bold text-[#004f62] uppercase tracking-wide border-b border-gray-200 pb-4 mb-6 flex items-center gap-3 flex-shrink-0">
+                    <span class="text-4xl">📝</span> Aufgabe
+                </h2>
+                <!-- Hier wird der Zoom angewendet -->
+                <div id="boardContent" class="board-prose prose max-w-none overflow-y-auto flex-1 text-gray-700 pr-4 flex flex-col justify-center transition-all origin-top-left" style="font-family: 'Calibri', sans-serif; font-size: 1.25rem;">
+                    <!-- Inhalt wird hier rein geladen -->
+                </div>
+            </div>
+            
+            <!-- Rechte Seite: QR Code und Link -->
+            <div class="flex-1 flex flex-col items-center justify-center space-y-8 bg-[#0f172a] p-8 rounded-xl border border-[#1f93b4] shadow-lg">
+                 <div class="bg-white p-6 rounded-2xl shadow-xl transform transition hover:scale-105 duration-300 relative">
+                     <div id="boardQRCode"></div>
+                     <div id="qrTextBadge" class="absolute -bottom-3 left-1/2 transform -translate-x-1/2 bg-[#1f93b4] text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider hidden shadow-md">
+                         Nur Text
+                     </div>
+                 </div>
+                 <div class="text-center w-full">
+                     <p class="text-gray-400 text-sm uppercase tracking-[0.2em] font-bold mb-4">Hier scannen & starten</p>
+                     <div class="bg-[#1e293b] p-5 rounded-lg border border-gray-600 shadow-inner">
+                        <p id="boardLinkText" class="font-mono text-[#1f93b4] text-xl md:text-2xl break-all select-all font-bold"></p>
+                     </div>
+                 </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Globale Variablen für den Tafel-Timer
+        let boardTargetTime = null;
+        let boardTimerInterval = null;
+
+        function toggleTimerInput(cb) {
+            const input = document.getElementById('timerMinutes');
+            input.disabled = !cb.checked;
+            const vorschau = document.getElementById('abgabeVorschau');
+            if (cb.checked) {
+                input.focus();
+                vorschau.classList.remove('opacity-0');
+                updateAbgabeVorschau();
+            } else {
+                vorschau.classList.add('opacity-0');
+            }
+        }
+
+        function updateAbgabeVorschau() {
+            const mins = parseInt(document.getElementById('timerMinutes').value) || 0;
+            if (mins > 0) {
+                const target = new Date(Date.now() + mins * 60000);
+                const timeString = target.toLocaleTimeString('de-DE', {hour: '2-digit', minute:'2-digit'});
+                document.getElementById('abgabeVorschau').textContent = `Abgabe ca.: ${timeString} Uhr`;
+            }
+        }
+
+        function generateLink() {
+            let baseUrl = window.location.href.replace('aufgabengestalter.html', 'index.html');
+            if (baseUrl === window.location.href) baseUrl = './index.html';
+
+            const content = document.getElementById('taskContent').value.trim();
+            const limit = document.getElementById('taskLimit').value;
+            const useTimer = document.getElementById('addTimer').checked;
+            const timerMins = parseInt(document.getElementById('timerMinutes').value);
+            const includeText = document.getElementById('includeTextInLink').checked;
+
+            const params = new URLSearchParams();
+            
+            // Text nur einbetten wenn gewünscht
+            if (includeText) {
+                params.append('text', content || 'Bitte Aufgabe bearbeiten.');
+            }
+            
+            if (limit > 0) params.append('limit', limit);
+            
+            if (useTimer && timerMins > 0) {
+                const targetTimestamp = Date.now() + (timerMins * 60000);
+                params.append('target', targetTimestamp);
+            }
+
+            const finalUrl = baseUrl + '?' + params.toString();
+
+            document.getElementById('resultLink').value = finalUrl;
+            
+            const testBtn = document.getElementById('testBtn');
+            testBtn.href = finalUrl;
+            testBtn.classList.remove('opacity-50', 'pointer-events-none');
+
+            // QR Code generieren (IMMER DER LINK)
+            renderQR('qrContainer', finalUrl, 150);
+            
+            // Speichern für Board View
+            window.lastGeneratedUrl = finalUrl;
+            window.lastQrLite = !includeText;
+            
+            if (useTimer && timerMins > 0) {
+                boardTargetTime = Date.now() + (timerMins * 60000);
+            } else {
+                boardTargetTime = null;
+            }
+        }
+
+        function renderQR(containerId, text, size) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = ''; 
+            if (typeof QRCode !== 'undefined') {
+                const correctLevel = text.length > 200 ? QRCode.CorrectLevel.M : QRCode.CorrectLevel.L;
+                new QRCode(container, {
+                    text: text,
+                    width: size,
+                    height: size,
+                    colorDark : "#000000",
+                    colorLight : "#ffffff",
+                    correctLevel : correctLevel
+                });
+            } else {
+                container.textContent = "QR Bib nicht geladen";
+            }
+        }
+
+        function copyLink() {
+            const copyText = document.getElementById("resultLink");
+            copyText.select();
+            copyText.setSelectionRange(0, 99999); 
+            navigator.clipboard.writeText(copyText.value);
+            const btn = document.querySelector('button[onclick="copyLink()"]');
+            const originalText = btn.textContent;
+            btn.textContent = "Kopiert!";
+            setTimeout(() => btn.textContent = originalText, 2000);
+        }
+
+        // --- TAFEL ANSICHT & ZOOM & TIMER ---
+        function openBoardView() {
+            const link = document.getElementById('resultLink').value;
+            if(!link) {
+                alert("Bitte erst 'Link Generieren' klicken.");
+                return;
+            }
+
+            const content = document.getElementById('taskContent').value.trim() || "Keine Aufgabenstellung.";
+            const formattedContent = content.replace(/\n/g, '<br>');
+            const boardContentDiv = document.getElementById('boardContent');
+            boardContentDiv.innerHTML = formattedContent;
+
+            resetZoom();
+
+            if(content.length > 200) {
+                boardContentDiv.classList.remove('justify-center');
+            } else {
+                boardContentDiv.classList.add('justify-center');
+            }
+
+            document.getElementById('boardLinkText').textContent = link;
+            
+            renderQR('boardQRCode', link, 300);
+            
+            const badge = document.getElementById('qrTextBadge');
+            if(window.lastQrLite) {
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+
+            const timerContainer = document.getElementById('boardTimerContainer');
+            if (boardTargetTime) {
+                timerContainer.classList.remove('hidden');
+                timerContainer.classList.add('flex');
+                startBoardTimer();
+            } else {
+                timerContainer.classList.add('hidden');
+                timerContainer.classList.remove('flex');
+                stopBoardTimer();
+            }
+
+            document.getElementById('boardModal').style.display = 'flex';
+        }
+
+        function closeBoardView() {
+            document.getElementById('boardModal').style.display = 'none';
+            stopBoardTimer();
+        }
+
+        function startBoardTimer() {
+            stopBoardTimer();
+            updateBoardTimerDisplay();
+            boardTimerInterval = setInterval(updateBoardTimerDisplay, 1000);
+        }
+
+        function stopBoardTimer() {
+            if (boardTimerInterval) {
+                clearInterval(boardTimerInterval);
+                boardTimerInterval = null;
+            }
+        }
+
+        function updateBoardTimerDisplay() {
+            if (!boardTargetTime) return;
+            
+            const now = Date.now();
+            const diff = boardTargetTime - now;
+            const display = document.getElementById('boardTimerDisplay');
+
+            if (diff <= 0) {
+                display.textContent = "00:00";
+                display.classList.add('timer-expired');
+            } else {
+                display.classList.remove('timer-expired');
+                const m = Math.floor(diff / 60000);
+                const s = Math.floor((diff % 60000) / 1000);
+                display.textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            }
+        }
+
+        function adjustBoardTimer(minutes) {
+            if (!boardTargetTime) return;
+            boardTargetTime += (minutes * 60000);
+            updateBoardTimerDisplay();
+        }
+
+        function updateZoom(value) {
+            const contentDiv = document.getElementById('boardContent');
+            contentDiv.style.fontSize = `${value * 1.25}rem`;
+            document.getElementById('zoomValue').textContent = `${Math.round(value * 100)}%`;
+        }
+
+        function resetZoom() {
+            const slider = document.getElementById('zoomSlider');
+            slider.value = 1.0;
+            updateZoom(1.0);
+        }
+    </script>
+</body>
+</html>

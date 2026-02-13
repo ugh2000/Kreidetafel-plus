@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Abi-Online Modular</title>
+    
+    <!-- 1. Tailwind CSS laden -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 2. Tailwind Konfiguration SOFORT setzen -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        slate: { 850: '#1e293b', 900: '#0f172a' }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Externe Bibliotheken -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.7.0/tinymce.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/startup.js"></script>
+
+    <!-- Eigenes Design -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-slate-50 text-slate-900 transition-colors duration-300 dark:bg-slate-900 dark:text-slate-100 flex flex-col h-screen overflow-hidden">
+
+    <!-- Navbar -->
+    <header class="h-14 bg-white dark:bg-slate-850 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-4 shrink-0 z-20 shadow-sm">
+        <div class="flex items-center gap-3">
+            <span class="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Abi-Online</span>
+            <span class="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full font-medium hidden sm:inline-block">v4.0 Modular</span>
+        </div>
+        
+        <div class="flex items-center gap-2">
+            <!-- Dark Mode Toggle -->
+            <button onclick="toggleDarkMode()" class="p-2 text-slate-500 hover:text-blue-600 transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700" title="Dunkelmodus">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+            </button>
+            <button onclick="toggleFullscreen()" class="p-2 text-slate-500 hover:text-blue-600 transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700" title="Vollbild">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Layout: Vertikale Aufteilung (flex-col) -->
+    <div class="flex flex-col flex-1 overflow-hidden relative">
+        
+        <!-- Oben: Aufgaben & Tools (h-1/3 statt w-1/3) -->
+        <aside id="taskPane" class="h-1/3 min-h-[150px] w-full bg-white dark:bg-slate-850 border-b border-slate-200 dark:border-slate-700 flex flex-col transition-all duration-300 z-10">
+            
+            <!-- Toolbar für Settings -->
+            <div class="p-3 border-b border-slate-100 dark:border-slate-700 flex flex-wrap gap-2 text-xs bg-slate-50 dark:bg-slate-900/50">
+                <label class="flex items-center gap-1.5 cursor-pointer bg-white dark:bg-slate-800 px-2 py-1 rounded border border-slate-200 dark:border-slate-600 hover:border-blue-400">
+                    <input type="checkbox" id="showTaskHeaderCheckbox" class="accent-blue-600">
+                    <span>Kopfzeile</span>
+                </label>
+                <label class="flex items-center gap-1.5 cursor-pointer bg-white dark:bg-slate-800 px-2 py-1 rounded border border-slate-200 dark:border-slate-600 hover:border-blue-400">
+                    <input type="checkbox" id="showPreviewCheckbox" class="accent-blue-600">
+                    <span>Vorschau</span>
+                </label>
+                <label class="flex items-center gap-1.5 cursor-pointer bg-white dark:bg-slate-800 px-2 py-1 rounded border border-slate-200 dark:border-slate-600 hover:border-blue-400">
+                    <input type="checkbox" id="correctionModeCheckbox" class="accent-blue-600">
+                    <span>Korrektur</span>
+                </label>
+                <label class="flex items-center gap-1.5 cursor-pointer bg-white dark:bg-slate-800 px-2 py-1 rounded border border-slate-200 dark:border-slate-600 hover:border-blue-400">
+                    <input type="checkbox" id="showAudioCheckbox" class="accent-blue-600">
+                    <span>Audio</span>
+                </label>
+                <label class="flex items-center gap-1.5 cursor-pointer bg-white dark:bg-slate-800 px-2 py-1 rounded border border-slate-200 dark:border-slate-600 hover:border-blue-400">
+                    <input type="checkbox" id="showExportCheckbox" class="accent-blue-600">
+                    <span>Export</span>
+                </label>
+            </div>
+
+            <!-- Scrollbarer Inhalt Oben -->
+            <div class="flex-1 overflow-y-auto p-4 space-y-6">
+                
+                <!-- Kopfdaten -->
+                <div id="taskHeaderSection" class="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 hidden">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Schülerdaten</h3>
+                    <div class="grid grid-cols-2 gap-3 mb-3">
+                        <input type="text" id="studentName" placeholder="Name" oninput="saveIdentity()" class="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 focus:ring-2 focus:ring-blue-500 outline-none">
+                        <input type="text" id="studentClass" placeholder="Klasse" oninput="saveIdentity()" class="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <input type="text" id="taskTitleInput" placeholder="Thema / Aufgabe" class="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+
+                <!-- Export Bereich -->
+                <div id="exportSection" class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800 hidden">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 mb-3">Export & Abgabe</h3>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="generateHTML()" class="flex items-center justify-center gap-2 px-3 py-2 bg-white dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-900/30 text-slate-700 dark:text-slate-200 text-sm font-medium rounded-lg border border-slate-200 dark:border-slate-700 transition-all">
+                            <span>HTML</span>
+                        </button>
+                        <button onclick="generatePDF()" class="flex items-center justify-center gap-2 px-3 py-2 bg-white dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-900/30 text-slate-700 dark:text-slate-200 text-sm font-medium rounded-lg border border-slate-200 dark:border-slate-700 transition-all">
+                            <span>PDF</span>
+                        </button>
+                        <button onclick="printPage()" class="col-span-2 flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-lg shadow-sm transition-all">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                            <span>Drucken</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Audio Bereich -->
+                <div id="audioSection" class="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-xl border border-purple-100 dark:border-purple-800 hidden">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400 mb-3">Vorlesen</h3>
+                    <div class="flex flex-col gap-2">
+                         <select id="voiceSelect" class="w-full text-sm p-2 rounded border border-purple-200 dark:border-purple-800 bg-white dark:bg-slate-800"></select>
+                         <button onclick="readText()" class="w-full py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold rounded-lg transition-all">
+                            Starten
+                         </button>
+                    </div>
+                </div>
+
+                <!-- Snippets Container -->
+                <div id="snippetsContainer" class="space-y-3">
+                    <!-- Wird via JS gefüllt -->
+                </div>
+            </div>
+        </aside>
+
+        <!-- Resizer Handle (Horizontal Bar) -->
+        <div id="resizer" title="Ziehen zum Ändern der Höhe"></div>
+
+        <!-- Unten: Editor -->
+        <main class="flex-1 flex flex-col min-h-0 bg-white dark:bg-slate-900 relative">
+            <!-- TinyMCE Container -->
+            <div class="flex-1 p-2 overflow-hidden flex flex-col">
+                <textarea id="editor"></textarea>
+            </div>
+            
+            <!-- Wortzähler & Status unten rechts -->
+            <div class="h-8 px-4 flex items-center justify-between text-xs text-slate-400 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
+                <span id="autoSaveStatus">Bereit</span>
+                <span id="wordCountDisplay">0 Wörter</span>
+            </div>
+        </main>
+
+        <!-- Live Vorschau (Overlay) -->
+        <div id="previewPane" class="hidden absolute top-0 right-0 w-1/2 h-full bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-700 shadow-2xl z-30 flex flex-col">
+            <div class="h-10 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between px-4 bg-slate-50 dark:bg-slate-800">
+                <span class="font-bold text-slate-600 dark:text-slate-300">Vorschau</span>
+                <button onclick="togglePreview(false)" class="text-slate-400 hover:text-red-500">✕</button>
+            </div>
+            <div id="htmlPreview" class="flex-1 p-8 overflow-y-auto prose dark:prose-invert max-w-none"></div>
+        </div>
+    </div>
+
+    <!-- Floating Correction Toolbar -->
+    <div id="correctionToolbar" class="hidden fixed bottom-12 left-1/2 -translate-x-1/2 bg-white dark:bg-slate-800 p-2 rounded-xl shadow-xl border border-slate-200 dark:border-slate-600 z-50 flex gap-2 items-center transition-all duration-300">
+        <button onclick="safeExecCommand('ForeColor', false, '#DC2626')" class="bg-red-50 text-red-700 px-3 py-1.5 rounded text-sm font-bold border border-red-200">Rot</button>
+        <button onclick="safeExecCommand('ForeColor', false, '#1E40AF')" class="bg-blue-50 text-blue-700 px-3 py-1.5 rounded text-sm font-bold border border-blue-200">Blau</button>
+        <button onclick="applyCorrectionStrike()" class="bg-slate-100 text-slate-700 px-3 py-1.5 rounded text-sm font-medium line-through decoration-red-500">( Löschen )</button>
+        <button onclick="document.getElementById('correctionModeCheckbox').click()" class="ml-4 text-slate-400">Schließen</button>
+    </div>
+
+    <div id="toast" class="fixed bottom-6 right-6 bg-slate-900 text-white px-6 py-3 rounded-xl shadow-2xl opacity-0 pointer-events-none transition-opacity"></div>
+
+    <!-- Druckbereich -->
+    <div id="printSection">
+        <div class="print-running-header">
+            <div>Einsendeaufgabe: <span id="printName"></span> (<span id="printClass"></span>)</div>
+            <div id="printDate"></div>
+        </div>
+        <div id="printContent" class="print-body-wrapper"></div>
+    </div>
+
+    <!-- Skript Reihenfolge -->
+    <script src="fallback.js"></script>
+    <script src="sketch.js"></script>
+    <script src="export.js"></script>
+    <script src="logic.js"></script>
+
+</body>
+</html>
