@@ -72,6 +72,12 @@ sound/: Enthält Audiodateien (z. B. für die Glocke).
 
 asciimathml-master/: Lokale Skripte zur Darstellung mathematischer Formeln (AsciiMath).
 
+🛠️ Entwicklung:
+
+Konzept & Realisierung: UGH2000
+
+Co-Coding & Support: Dieses Projekt entstand im kreativen Dialog mit Gemini. Die KI fungierte als geduldiger Co-Coder bei der Strukturierung, Fehlersuche und Umsetzung der didaktischen Ideen.
+
 ⚖️ Lizenzen & Credits
 
 Dieses Projekt verwendet Open-Source-Komponenten:
