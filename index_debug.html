@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>DEBUG: E-Tafel Ladevorgang</title>
+    <!-- Zentrales Stylesheet -->
+    <link rel="stylesheet" href="index-style.css">
+    <!-- Tailwind CSS (Lokal) -->
+    <script src="./tailwindcss.js"></script>
+    <style>
+        #debug-console {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 40vh;
+            background: #111;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            padding: 10px;
+            overflow-y: scroll;
+            z-index: 9999;
+            border-top: 2px solid #004f62;
+            white-space: pre-wrap;
+        }
+        .status-ok { color: #4ade80; }
+        .status-err { color: #f87171; font-weight: bold; }
+        
+        /* Hilfs-Stile für die Debug-Ansicht */
+        .modal-overlay { background-color: rgba(0,0,0,0.5); }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <div id="top-bar" class="h-12 bg-[#004f62] text-white flex items-center px-4 justify-between">
+        <span class="font-bold">DEBUG-MODUS (v2.9.2)</span>
+        <span id="app-version" class="text-xs">Initialisiere...</span>
+    </div>
+
+    <div class="p-8">
+        <div class="bg-white p-4 rounded shadow">
+            <h1 class="text-xl font-bold mb-4">TinyMCE Test-Instanz</h1>
+            <div id="editor-box" class="h-[300px] border border-gray-300 rounded overflow-hidden">
+                <textarea id="tafel-editor">Prüfe Ladevorgang...</textarea>
+            </div>
+        </div>
+    </div>
+
+    <!-- NOTWENDIGE CONTAINER FÜR MODULE (Verhindert JS-Absturz) -->
+    <div id="help-modal" class="hidden">
+        <div id="help-content"></div>
+        <button id="btn-close-help"></button>
+    </div>
+
+    <div id="drawingModal" class="hidden">
+        <canvas id="sketchpad"></canvas>
+        <button id="btn-close-sketch"></button>
+        <button id="btn-insert-sketch"></button>
+        <button id="btn-clear-sketch"></button>
+        <input type="color" id="penColor">
+        <input type="range" id="penSize">
+        <div id="colorPalette"></div>
+        <div id="emojiPalette"></div>
+    </div>
+
+    <div id="debug-console">--- SYSTEM LOG START ---</div>
+
+    <script>
+        const log = (msg, err = false) => {
+            const consoleEl = document.getElementById('debug-console');
+            const div = document.createElement('div');
+            div.className = err ? 'status-err' : 'status-ok';
+            div.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            consoleEl.appendChild(div);
+            consoleEl.scrollTop = consoleEl.scrollHeight;
+            console.log(msg);
+        };
+
+        const loadScript = (src) => {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = src;
+                script.onload = () => { 
+                    log(`Geladen: ${src}`); 
+                    resolve(); 
+                };
+                script.onerror = () => { 
+                    const errorMsg = `FEHLER: Konnte ${src} nicht laden!`;
+                    log(errorMsg, true); 
+                    // Reject jetzt mit einem Error-Objekt, damit e.message existiert
+                    reject(new Error(errorMsg)); 
+                };
+                document.body.appendChild(script);
+            });
+        };
+
+        async function initDebugSequence() {
+            log("Starte sequenziellen Ladevorgang...");
+            try {
+                // 1. Kern & Daten
+                await loadScript("./tinymce/tinymce.min.js");
+                await loadScript("https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js");
+                await loadScript("snippets.js");
+                await loadScript("shortcuts.js");
+                await loadScript("changelog.js");
+                await loadScript("welcome.js");
+                await loadScript("tools.js");
+                await loadScript("hilfe-content.js");
+
+                // 2. Features
+                await loadScript("korrektur.js");
+                await loadScript("math.js");
+                await loadScript("voice.js");
+                await loadScript("skizze.js");
+                await loadScript("gruppen.js");
+                await loadScript("iframe.js");
+
+                // 3. UI & Logik
+                await loadScript("editorUI.js");
+                await loadScript("hilfe.js");
+                await loadScript("hilfegruppe.js");
+                await loadScript("menuZeile.js");
+                await loadScript("logik-snippets.js");
+                await loadScript("logik.js");
+
+                log("Alle Skripte geladen. Überprüfe Versionsnummer...");
+                if (typeof ChangelogModul !== 'undefined' && ChangelogModul.history) {
+                    document.getElementById('app-version').textContent = ChangelogModul.history[0].version;
+                }
+            } catch (e) {
+                // Sicherstellen, dass e existiert, bevor auf .message zugegriffen wird
+                const errorMessage = e && e.message ? e.message : "Unbekannter Fehler beim Laden";
+                log("Ladevorgang durch Fehler unterbrochen: " + errorMessage, true);
+            }
+        }
+
+        window.onload = initDebugSequence;
+    </script>
+</body>
+</html>

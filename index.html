@@ -5,386 +5,111 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>E-Tafel Editor Modular</title>
     
-    <!-- Schriftart Inter -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="index-style.css">
     
-    <!-- Tailwind CSS (Lokal) -->
+    <!-- Bibliotheken -->
     <script src="./tailwindcss.js"></script>
-    
-    <!-- TinyMCE Editor (Lokal) -->
     <script src="./tinymce/tinymce.min.js" referrerpolicy="origin"></script>
-
-    <style>
-        body {
-            background-color: #f3f4f6;
-            overflow: hidden;
-            font-family: 'Inter', sans-serif;
-        }
-
-        .modal-overlay {
-            background-color: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(2px);
-        }
-        
-        /* --- LAYOUT --- */
-        .editor-wrapper {
-            width: 100%;
-            height: calc(100vh - 5rem); /* Platz für Header + etwas Luft */
-            display: flex;
-            flex-direction: column; 
-            padding: 1rem;
-            overflow: hidden; 
-        }
-
-        .editor-box {
-            width: 100%;
-            flex: 1; 
-            min-height: 200px; 
-            display: flex;
-            flex-direction: column;
-            background: white;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            border-radius: 0.5rem;
-            transition: width 0.3s;
-            overflow: hidden;
-            position: relative;
-        }
-
-        /* TinyMCE soll den ganzen Platz im Container füllen */
-        .tox-tinymce {
-            height: 100% !important;
-            width: 100% !important;
-            border: none !important;
-            border-top: 1px solid #e5e7eb !important;
-            flex-grow: 1;
-        }
-
-        /* Fallback Textarea */
-        #tafel-editor {
-            width: 100%;
-            height: 100%;
-            padding: 1rem;
-            font-family: monospace;
-            border: none;
-            resize: none;
-            outline: none;
-            color: #374151;
-        }
-        
-        /* Debug Konsole - Design angepasst an Mond-Farbe */
-        #debug-console {
-            height: 2rem;
-            background: #004f62; 
-            color: #ffffff;
-            font-family: monospace;
-            font-size: 0.75rem;
-            padding: 0.25rem 1rem;
-            display: flex;
-            align-items: center;
-            overflow: hidden;
-            white-space: nowrap;
-            border-top: 1px solid #1f93b4;
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            z-index: 1000;
-        }
-
-        /* --- RESIZER FÜR MATHE-VORSCHAU --- */
-        .resizer {
-            height: 12px;
-            background-color: #f1f5f9;
-            border-top: 1px solid #e2e8f0;
-            border-bottom: 1px solid #e2e8f0;
-            cursor: row-resize;
-            display: none; /* Wird per JS eingeblendet */
-            justify-content: center;
-            align-items: center;
-            flex-shrink: 0; 
-            transition: background-color 0.2s;
-            margin-top: 0.5rem;
-            margin-bottom: 0.5rem;
-            border-radius: 4px;
-        }
-
-        .resizer:hover, .resizer.active {
-            background-color: #e2e8f0;
-        }
-
-        .resizer::after {
-            content: "";
-            width: 40px;
-            height: 4px;
-            border-top: 2px solid #cbd5e1;
-            border-bottom: 2px solid #cbd5e1;
-            display: block;
-        }
-
-        /* --- UI STYLING (Range Slider & Scrollbars) --- */
-        /* Diese Styles hatten gefehlt, was die Datei kürzer machte */
-        
-        /* Hübsche Scrollbalken für Webkit (Chrome, Edge, Safari) */
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
-        /* Range Slider Reset */
-        input[type=range] {
-            -webkit-appearance: none;
-            background: transparent;
-        }
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            height: 16px;
-            width: 16px;
-            border-radius: 50%;
-            background: #ffffff;
-            cursor: pointer;
-            margin-top: -6px; /* Zentrierung auf Track */
-            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-            border: 1px solid #e2e8f0;
-        }
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%;
-            height: 4px;
-            cursor: pointer;
-            background: #475569;
-            border-radius: 2px;
-        }
-    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body class="text-gray-800">
 
-    <!-- OBERSTE ZEILE (UI) - Hintergrund Mond (#004f62) -->
+    <!-- UI: Kopfzeile -->
     <div id="top-bar" class="fixed top-0 left-0 w-full h-12 bg-[#004f62] text-white flex items-center justify-between px-4 shadow-md z-50">
         <div class="flex items-center space-x-4">
             <span class="font-bold text-lg tracking-wide hidden md:inline">E-Tafel</span>
-            <!-- VERSION AKTUALISIERT -->
-            <span class="text-xs bg-[#1f93b4] px-2 py-1 rounded text-white font-semibold">v2.4</span>
+            <span id="app-version" class="text-xs bg-[#1f93b4] px-2 py-1 rounded text-white font-semibold italic">Lade...</span>
         </div>
 
         <div class="flex items-center space-x-2 sm:space-x-4">
-            <!-- Wortzähler -->
-            <div id="word-count" class="font-mono text-xs text-white bg-[#1f93b4] bg-opacity-30 px-2 py-1 rounded hidden lg:block">
-                0 Wörter
-            </div>
+            <div id="word-count" class="font-mono text-xs text-white bg-[#1f93b4] bg-opacity-30 px-2 py-1 rounded hidden lg:block">0 Wörter</div>
+            <div id="window-dims" class="font-mono text-xs text-gray-300 hidden xl:block">-- x --</div>
 
-            <!-- Fenstergröße -->
-            <div id="window-dims" class="font-mono text-xs text-gray-300 hidden xl:block">
-                -- x --
-            </div>
+            <button id="btn-groups" class="px-2 py-1 hover:bg-[#1f93b4] rounded flex items-center gap-1" title="Gruppen"><span class="text-sm font-medium">Gruppen</span></button>
+            <button id="btn-iframe" class="px-2 py-1 hover:bg-[#1f93b4] rounded flex items-center gap-1" title="Tools"><span class="text-sm font-medium">Tools</span></button>
+            <button id="btn-sketch" class="px-2 py-1 hover:bg-[#1f93b4] rounded flex items-center gap-1" title="Skizze"><span class="text-sm font-medium">Skizze</span></button>
+            <button id="btn-math" class="px-2 py-1 hover:bg-[#1f93b4] rounded flex items-center gap-1" title="Mathe"><span class="text-sm font-medium">Mathe</span></button>
+            <button id="btn-voice" class="px-2 py-1 hover:bg-[#1f93b4] rounded flex items-center gap-1" title="Vorlesen"><span class="text-sm font-medium">Vorlesen</span></button>
+            <button id="btn-export-html" class="px-2 py-1 hover:bg-[#1f93b4] rounded ml-2" title="Export">💾</button>
 
-            <!-- Auflösungswahl -->
-            <select id="res-select" class="bg-[#1f93b4] bg-opacity-30 text-white text-sm rounded border border-[#1f93b4] px-2 py-1 focus:outline-none focus:border-white hidden sm:block">
-                <option value="auto" class="text-gray-800">Auto (Fenster)</option>
-                <option value="1024x768" class="text-gray-800">1024 x 768 (XGA)</option>
-                <option value="1280x720" class="text-gray-800">1280 x 720 (HD)</option>
-                <option value="1920x1080" class="text-gray-800">1920 x 1080 (FHD)</option>
-            </select>
-
-            <!-- Vollbild -->
-            <button id="btn-fullscreen" class="p-1 hover:bg-[#1f93b4] rounded text-white transition-colors" title="Vollbild umschalten">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-                </svg>
-            </button>
-
-            <!-- Trenner -->
             <div class="h-6 w-px bg-[#1f93b4] mx-2 hidden sm:block"></div>
 
-            <!-- NEU: Gruppen Button -->
-            <button id="btn-groups" class="px-2 py-1 hover:bg-[#1f93b4] rounded text-white transition-colors flex items-center gap-1" title="Gruppen-Generator">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                </svg>
-                <span class="text-sm font-medium hidden sm:inline">Gruppen</span>
-            </button>
-
-            <!-- iFrame Tools Button -->
-            <button id="btn-iframe" class="px-2 py-1 hover:bg-[#1f93b4] rounded text-white transition-colors flex items-center gap-1" title="Externe Werkzeuge öffnen">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-                </svg>
-                <span class="text-sm font-medium hidden sm:inline">Tools</span>
-            </button>
-
-            <!-- Skizze Button -->
-            <button id="btn-sketch" class="px-2 py-1 hover:bg-[#1f93b4] rounded text-white transition-colors flex items-center gap-1" title="Skizze erstellen">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                </svg>
-                <span class="text-sm font-medium hidden sm:inline">Skizze</span>
-            </button>
-
-            <!-- Mathe Button -->
-            <button id="btn-math" class="px-2 py-1 hover:bg-[#1f93b4] rounded text-white transition-colors flex items-center gap-1" title="Formel-Vorschau an/aus">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4h10v2h-7l5 6-5 6h7v2H7V4z" />
-                </svg>
-                <span class="text-sm font-medium hidden sm:inline">Mathevorschau</span>
-            </button>
-
-            <!-- Voice Button -->
-            <button id="btn-voice" class="px-2 py-1 hover:bg-[#1f93b4] rounded text-white transition-colors flex items-center gap-1" title="Vorlesen ein/aus">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
-                </svg>
-                <span class="text-sm font-medium hidden sm:inline">Vorlesen</span>
-            </button>
-
-            <!-- Aufgabengestalter Button -->
-            <button id="btn-task-creator" class="px-2 py-1 hover:bg-[#1f93b4] rounded text-white transition-colors flex items-center gap-1 ml-2" title="Aufgabengestalter öffnen">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
-                <span class="text-sm font-medium hidden sm:inline">Aufgabe</span>
-            </button>
-
-            <!-- Export Button -->
-            <button id="btn-export-html" class="px-2 py-1 hover:bg-[#1f93b4] rounded text-white transition-colors flex items-center gap-1 ml-2" title="Tafelbild als HTML speichern">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
-            </button>
-
-            <!-- Trenner -->
-            <div class="h-6 w-px bg-[#1f93b4] mx-2 hidden sm:block"></div>
-
-            <button id="btn-help" class="flex items-center space-x-1 hover:text-[#1f93b4] transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span class="hidden sm:inline">Hilfe</span>
-            </button>
+            <button id="btn-help" class="flex items-center space-x-1 hover:text-[#1f93b4] transition-colors"><span class="hidden sm:inline">Hilfe</span></button>
         </div>
     </div>
 
-    <!-- EDITOR BEREICH -->
     <main class="editor-wrapper mt-12">
         <div id="editor-box" class="editor-box">
-            <h2 class="text-sm font-semibold text-gray-500 mb-1 px-2 pt-1">Tafel-Bereich</h2>
-            <textarea id="tafel-editor">
-                <h2>Willkommen an der E-Tafel 👋</h2>
-                <p>Dieser Editor unterstützt deinen Unterricht mit nützlichen Funktionen:</p>
-                <ul>
-                    <li>🎨 <strong>Skizzen:</strong> Nutze den Button <strong>Skizze</strong> (Stift), um Freihandzeichnungen einzufügen.</li>
-                    <li>🧩 <strong>Snippets:</strong> Füge über das Menü <em>Snippets</em> interaktive Timer, Uhren oder Lernziel-Boxen ein.</li>
-                    <li>🔢 <strong>Mathematik:</strong> Schreibe Formeln in <code>$$</code> (für LaTeX) oder <code>§§</code> (für AsciiMath). Aktiviere auch die Vorschau oben rechts über <strong>Mathevorschau</strong>.</li>
-                    <li>📢 <strong>Vorlesen:</strong> Nutze den Button <strong>Vorlesen</strong> (💬 Sprechblase), um den markierten oder ganzen Text via Sprachsynthese wiederzugeben.</li>
-                </ul>
-                <p>⚡ <strong>Wichtige Funktionen:</strong></p>
-                <ul>
-                    <li>📝 <strong>Aufgabengestalter:</strong> Über den Button <strong>Aufgabe</strong> (Klemmbrett) erstellst du Links und QR-Codes für Schüler.</li>
-                    <li>💾 <strong>Speicherung:</strong> Der Editor speichert automatisch im Browser. Nutze im Notfall den Button <em>"Entwurf wiederherstellen"</em>.<br>Für dauerhafte Sicherung: <em>Datei -> Drucken (PDF)</em> oder <em>Export als HTML</em>.</li>
-                </ul>
-            </textarea>
+            <textarea id="tafel-editor"></textarea>
         </div>
     </main>
 
-    <!-- DEBUG KONSOLE -->
-    <div id="debug-console" style="display:none;">Status: Bereit.</div>
+    <div id="debug-console" style="display:none;">Bereit.</div>
 
-    <!-- SKIZZEN MODAL -->
-    <div id="drawingModal" class="modal-overlay fixed inset-0 z-[100] hidden flex items-center justify-center">
-        <div class="bg-white rounded-xl shadow-2xl w-[95%] max-w-4xl p-4 flex flex-col h-[90vh]">
-            <!-- Header Skizze -->
-            <div class="flex justify-between items-center mb-2 pb-2 border-b border-gray-100 flex-shrink-0">
-                <div class="flex items-center gap-4 flex-wrap">
-                    <h3 class="text-lg font-bold text-[#004f62]">Skizze</h3>
-                    
-                    <!-- Werkzeugleiste -->
-                    <div class="flex bg-gray-100 rounded-lg p-1 gap-1">
-                        <button id="tool-pen" class="tool-btn px-2 py-1 rounded text-sm font-bold flex items-center gap-1 transition bg-blue-100 border border-blue-500 text-blue-700" title="Stift">✏️</button>
-                        <button id="tool-text" class="tool-btn px-2 py-1 rounded text-sm font-bold flex items-center gap-1 transition text-gray-500 hover:bg-gray-200" title="Text (Klick ins Bild)">🅰️</button>
-                        <button id="tool-eraser" class="tool-btn px-2 py-1 rounded text-sm font-bold flex items-center gap-1 transition text-gray-500 hover:bg-gray-200" title="Radierer (Weiß)">🧽</button>
-                        
-                        <div class="w-px bg-gray-300 mx-1"></div>
-                        
-                        <button id="tool-line" class="tool-btn px-2 py-1 rounded text-sm font-bold flex items-center gap-1 transition text-gray-500 hover:bg-gray-200" title="Linie">📏</button>
-                        <button id="tool-rect" class="tool-btn px-2 py-1 rounded text-sm font-bold flex items-center gap-1 transition text-gray-500 hover:bg-gray-200" title="Rechteck">⬜</button>
-                        <button id="tool-circle" class="tool-btn px-2 py-1 rounded text-sm font-bold flex items-center gap-1 transition text-gray-500 hover:bg-gray-200" title="Kreis">⭕</button>
-                    </div>
-                </div>
-
-                <button id="btn-close-sketch" class="text-gray-400 hover:text-gray-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-            
-            <!-- Canvas Bereich -->
-            <div class="relative bg-white border border-gray-300 rounded shadow-inner mb-2 flex-grow cursor-crosshair overflow-hidden">
-                <canvas id="sketchpad" class="w-full h-full touch-none block"></canvas>
-            </div>
-
-            <!-- Footer Toolbar -->
-            <div class="flex flex-col md:flex-row justify-between items-center gap-4 flex-shrink-0 pt-2">
-                <div class="flex flex-wrap items-center gap-4">
-                    <div id="colorPalette" class="flex gap-1.5"></div>
-                    <div class="h-6 w-px bg-gray-300 mx-2"></div>
-                    <!-- Emoji Bar -->
-                    <div id="emojiPalette" class="flex gap-1 overflow-x-auto max-w-[200px] md:max-w-[300px]"></div>
-                    
-                    <div class="h-6 w-px bg-gray-300 mx-2"></div>
-                    
-                    <div class="flex items-center gap-2">
-                        <input type="color" id="penColor" value="#000000" class="h-8 w-8 cursor-pointer border-none p-0 bg-transparent rounded overflow-hidden" title="Eigene Farbe">
-                        <input type="range" id="penSize" min="1" max="20" value="2" class="w-24 accent-[#1f93b4]" title="Größe">
-                    </div>
-                </div>
-                
-                <div class="flex gap-2">
-                    <button id="btn-clear-sketch" class="px-4 py-2 text-red-600 hover:bg-red-50 rounded font-bold transition text-sm">Leeren</button>
-                    <button id="btn-insert-sketch" class="px-6 py-2 bg-[#1f93b4] hover:bg-[#004f62] text-white rounded font-bold shadow transition flex items-center gap-2 text-sm">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        Einfügen
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- HILFE MODAL -->
-    <div id="help-modal" class="modal-overlay fixed inset-0 z-[100] hidden flex items-center justify-center">
-        <div class="bg-white rounded-lg shadow-xl w-full max-w-lg p-6 relative">
-            <button id="btn-close-help" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-            </button>
-            <h1 class="text-2xl font-bold text-[#004f62] mb-4 border-b pb-2">Hilfe & Info</h1>
+    <!-- MODAL-CONTAINER -->
+    <div id="help-modal" class="modal-overlay fixed inset-0 z-[200] hidden flex items-center justify-center">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl p-6 relative">
+            <button id="btn-close-help" class="absolute top-4 right-4 text-gray-400">✖</button>
             <div id="help-content"></div>
         </div>
     </div>
 
-    <!-- SCRIPTS - Reihenfolge optimiert! -->
-    <!-- 1. Bibliotheken & Daten -->
+    <div id="drawingModal" class="modal-overlay fixed inset-0 z-[100] hidden flex items-center justify-center">
+        <div class="bg-white rounded-xl shadow-2xl w-[95%] max-w-4xl p-4 flex flex-col h-[90vh]">
+            <div class="flex justify-between items-center mb-2 pb-2 border-b">
+                <h3 class="text-lg font-bold text-[#004f62]">Skizze</h3>
+                <div class="flex bg-gray-100 rounded p-1 gap-1">
+                    <button id="tool-pen" class="px-2 py-1 rounded">✏️</button>
+                    <button id="tool-text" class="px-2 py-1 rounded">🅰️</button>
+                    <button id="tool-eraser" class="px-2 py-1 rounded">🧽</button>
+                    <button id="tool-line" class="px-2 py-1 rounded">📏</button>
+                    <button id="tool-rect" class="px-2 py-1 rounded">⬜</button>
+                    <button id="tool-circle" class="px-2 py-1 rounded">⭕</button>
+                </div>
+                <button id="btn-close-sketch" class="text-gray-400">✖</button>
+            </div>
+            <div class="relative bg-white border flex-grow overflow-hidden">
+                <canvas id="sketchpad" class="w-full h-full"></canvas>
+            </div>
+            <div class="flex justify-between mt-2">
+                <div class="flex gap-2 items-center">
+                    <div id="colorPalette" class="flex gap-1"></div>
+                    <div id="emojiPalette" class="flex gap-1"></div>
+                    <input type="color" id="penColor" value="#000000">
+                    <input type="range" id="penSize" min="1" max="20" value="2">
+                </div>
+                <button id="btn-insert-sketch" class="bg-[#1f93b4] text-white px-4 py-1 rounded font-bold">Einfügen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPTS -->
     <script src="snippets.js"></script>
-    
-    <!-- 2. Feature-Module -->
-    <script src="editorUI.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="hilfe.js"></script>
-    <script src="hilfegruppe.js"></script>
+    <script src="shortcuts.js"></script>
+    <script src="changelog.js"></script>
+    <script src="welcome.js"></script>
     <script src="tools.js"></script>
-    <script src="voice.js"></script>
+    <script src="hilfe-content.js"></script>
+    <script src="korrektur.js"></script>
     <script src="math.js"></script> 
-    <script src="korrektur.js"></script> 
+    <script src="voice.js"></script>
     <script src="skizze.js"></script>
     <script src="gruppen.js"></script> 
     <script src="iframe.js"></script> 
-    
-    <!-- 3. UI-Steuerung & Logik -->
+    <script src="editorUI.js"></script>
+    <script src="hilfe.js"></script>
+    <script src="hilfegruppe.js"></script>
     <script src="menuZeile.js"></script>
+    <script src="logik-snippets.js"></script> <!-- ZURÜCK ZUM ORIGINAL -->
     <script src="logik.js"></script>
     
     <script>
         window.addEventListener('load', () => {
              if (typeof HilfeModul !== 'undefined') HilfeModul.init();
+             if (typeof ChangelogModul !== 'undefined' && ChangelogModul.history) {
+                 document.getElementById('app-version').textContent = ChangelogModul.history[0].version;
+             }
         });
     </script>
 </body>
