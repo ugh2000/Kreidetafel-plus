@@ -1,4 +1,4 @@
-Kreidetafel+ (v2.4) 🎓
+Kreidetafel+
 
 Ein browserbasierter, modularer Tafel-Editor für den Schuleinsatz. Entwickelt für die Nutzung an digitalen Tafeln (Smartboards), Tablets und Desktop-Rechnern.
 
