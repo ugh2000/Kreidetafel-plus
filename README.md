@@ -38,7 +38,7 @@ Online Nutzung
 
 Das Projekt ist unter folgendem Link verfügbar:
 
-[$$Link zu deiner GitHub Page hier einfügen$$](https://github.com/ugh2000/Kreidetafel-plus)
+https://github.com/ugh2000/Kreidetafel-plus
 
 Lokale Nutzung (USB-Stick / Offline)
 
