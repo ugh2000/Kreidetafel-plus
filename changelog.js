@@ -1,21 +1,33 @@
 /**
  * MODUL: changelog.js
- * Verwaltet die Versionshistorie des Projekts.
+ * Verwaltet die Versionshistorie des Projekts Kreidetafel+.
  */
 const ChangelogModul = {
     // Die Liste der Versionen (Neueste zuerst)
     history: [
-                {
+        {
+            version: 'v3.1',
+            title: 'Individualisierungs-Update',
+            date: 'Februar 2026',
+            notes: [
+                'Architektur: Trennung der Werkzeuglisten in tools.js (global) und setup-individual/tools-individual.js (lokal).',
+                'UI-Design: Visuelle Abhebung lokaler Links durch smaragdgrüne Färbung und "(lokal)"-Markierung.',
+                'Medien: Neue eigenständige analoge Schuluhr (uhr-analog.html) zur Einbettung via iFrame.',
+                'Dokumentation: Interaktiver Setup-Guide für Lehrkräfte im Unterordner iframe-tools erstellt.',
+                'UX: Direkte Verlinkung der technischen Dokumentation aus dem Hilfe-Fenster heraus.'
+            ]
+        },
+        {
             version: 'v3.0',
             title: 'Korrektur- & Workflow-Update',
             date: 'Februar 2026',
             notes: [
                 'Korrektur-Modul: Neue additive Logik (Feedback-Symbole werden hinter den markierten Text angefügt).',
                 'Korrektur-Modul: Farbschema auf ein professionelles Hellrot (#fee2e2) für Hervorhebungen optimiert.',
-                'UI-Optimierung: "Durchgestrichen" ist nun Bestandteil der Schnellleiste (Bubble-Toolbar).',
+                'UI-Optimierung: "Durchgestrichen" nun Bestandteil der Schnellleiste (Bubble-Toolbar).',
                 'Interaktion: Registrierung neuer Feedback-Buttons (Smiley, Daumen hoch/runter).',
-                'Stabilität: Initialisierungs-Sequenz optimiert, um Ladefehler (Hängenbleiben bei TinyMCE) zu verhindern.',
-                'Willkommenstext: Integration technischer Hinweise zum Copy-Paste-Workflow für externe Sicherungen.'
+                'Stabilität: Initialisierungs-Sequenz optimiert (Lade-Hänger in TinyMCE behoben).',
+                'Zentraler Hinweis: Dokumentation der Copy-Paste-Notwendigkeit für externe Textverarbeitungen.'
             ]
         },
         {
@@ -24,8 +36,7 @@ const ChangelogModul = {
             date: 'Februar 2026',
             notes: [
                 'Performance: Bereinigte Skriptaufrufe und Entfernung redundanter Registrierungsschleifen.',
-                'Struktur: Menü-Registrierung zentralisiert in editorUI.js zur Vermeidung von ID-Kollisionen.',
-                'Fehlerbehandlung: Erweiterte Try-Catch-Blöcke für die Modul-Initialisierung.'
+                'Struktur: Menü-Registrierung zentralisiert in editorUI.js zur Vermeidung von ID-Kollisionen.'
             ]
         },
         {
@@ -34,8 +45,7 @@ const ChangelogModul = {
             date: 'Februar 2026',
             notes: [
                 'DSGVO: Vollständige Entfernung externer Google-Fonts-Abfragen.',
-                'UI: Umstellung auf einen performanten, datenschutzkonformen System-Font-Stack (Inter-Fallback).',
-                'Code-Hygiene: Reduzierung der Abhängigkeiten zwischen Kern-Logik und Feature-Modulen.'
+                'UI: Umstellung auf einen performanten System-Font-Stack (Inter-Fallback).'
             ]
         },
         {
@@ -43,9 +53,8 @@ const ChangelogModul = {
             title: 'Modulare Architektur',
             date: 'Februar 2026',
             notes: [
-                'Logbuch-Modul: Historie in eigene Datei shortcuts.js ausgelagert.',
-                'Code-Hygiene: Reduzierung der Abhängigkeiten in der Hauptlogik.',
-                'Verbesserte Fehlerbehandlung beim Laden externer Module.'
+                'Logbuch-Modul: Historie in eigene Datei changelog.js ausgelagert.',
+                'Code-Hygiene: Reduzierung der Abhängigkeiten in der Hauptlogik.'
             ]
         },
         {
@@ -54,9 +63,7 @@ const ChangelogModul = {
             date: 'Januar 2026',
             notes: [
                 'GitHub Release: Projekt ist nun offiziell Open Source verfügbar.',
-                'Textkürzel (Shortcuts): Schnelles Einfügen von Snippets via ##befehl.',
-                'Automatischer Timer-Start bei Aufgabenlinks verbessert.',
-                'Interaktive Hilfe für Shortcuts hinzugefügt.'
+                'Textkürzel (Shortcuts): Schnelles Einfügen von Snippets via ##befehl.'
             ]
         },
         {
@@ -65,9 +72,7 @@ const ChangelogModul = {
             date: 'Dezember 2025',
             notes: [
                 'Skizzen-Update: Einführung von Formen (Kreis, Rechteck, Linie) und Emoji-Stempeln.',
-                'High-DPI Support: Schärfere Zeichnungen auf modernen Displays.',
-                'Korrektur-Modul: Integration von Akkordeons (Klapptexten) zur Strukturierung.',
-                'Verbesserter Export: Tafelbilder werden inkl. interaktiver Elemente gespeichert.'
+                'High-DPI Support: Schärfere Zeichnungen auf modernen Displays.'
             ]
         },
         {
@@ -76,8 +81,7 @@ const ChangelogModul = {
             date: 'Oktober 2025',
             notes: [
                 'Vollständiger Rewrite: Umstellung auf ein modulares System (JS-Module).',
-                'Einführung der schwebenden Fenster für Gruppen und iFrames.',
-                'Integration von Web Speech API für die Vorlesefunktion.'
+                'Einführung der schwebenden Fenster für Gruppen und iFrames.'
             ]
         }
     ],
