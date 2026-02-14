@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analoge Uhr - Kreidetafel+</title>
+    <style>
+        :root {
+            --clock-size: 300px;
+            --main-color: #004f62;
+            --accent-color: #1f93b4;
+            --second-hand-color: #dc2626;
+            --bg-color: #ffffff;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: transparent; /* Erlaubt Einbettung */
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        .clock-container {
+            position: relative;
+            width: var(--clock-size);
+            height: var(--clock-size);
+            background: var(--bg-color);
+            border: 8px solid var(--main-color);
+            border-radius: 50%;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        /* Zifferblatt Markierungen */
+        .clock-face::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--main-color);
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+
+        .number {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.4rem;
+            color: var(--main-color);
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        /* Positionierung der Zahlen */
+        .n1 { transform: rotate(30deg); } .n1 span { transform: rotate(-30deg); display: block; }
+        .n2 { transform: rotate(60deg); } .n2 span { transform: rotate(-60deg); display: block; }
+        .n3 { transform: rotate(90deg); } .n3 span { transform: rotate(-90deg); display: block; }
+        .n4 { transform: rotate(120deg); } .n4 span { transform: rotate(-120deg); display: block; }
+        .n5 { transform: rotate(150deg); } .n5 span { transform: rotate(-150deg); display: block; }
+        .n6 { transform: rotate(180deg); } .n6 span { transform: rotate(-180deg); display: block; }
+        .n7 { transform: rotate(210deg); } .n7 span { transform: rotate(-210deg); display: block; }
+        .n8 { transform: rotate(240deg); } .n8 span { transform: rotate(-240deg); display: block; }
+        .n9 { transform: rotate(270deg); } .n9 span { transform: rotate(-270deg); display: block; }
+        .n10 { transform: rotate(300deg); } .n10 span { transform: rotate(-300deg); display: block; }
+        .n11 { transform: rotate(330deg); } .n11 span { transform: rotate(-330deg); display: block; }
+        .n12 { transform: rotate(0deg); } .n12 span { transform: rotate(0deg); display: block; }
+
+        /* Zeiger */
+        .hand {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            transform-origin: bottom;
+            border-radius: 4px;
+            z-index: 5;
+        }
+
+        .hour-hand {
+            width: 8px;
+            height: 25%;
+            background: var(--main-color);
+            margin-left: -4px;
+        }
+
+        .minute-hand {
+            width: 5px;
+            height: 40%;
+            background: var(--accent-color);
+            margin-left: -2.5px;
+        }
+
+        .second-hand {
+            width: 2px;
+            height: 45%;
+            background: var(--second-hand-color);
+            margin-left: -1px;
+            transition: transform 0.2s cubic-bezier(0.4, 2.08, 0.55, 0.44);
+        }
+
+        /* Digitale Zusatzanzeige */
+        .digital-time {
+            position: absolute;
+            top: 70%;
+            width: 100%;
+            text-align: center;
+            font-family: monospace;
+            font-size: 1rem;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="clock-container">
+        <div class="clock-face">
+            <div class="number n1"><span>1</span></div>
+            <div class="number n2"><span>2</span></div>
+            <div class="number n3"><span>3</span></div>
+            <div class="number n4"><span>4</span></div>
+            <div class="number n5"><span>5</span></div>
+            <div class="number n6"><span>6</span></div>
+            <div class="number n7"><span>7</span></div>
+            <div class="number n8"><span>8</span></div>
+            <div class="number n9"><span>9</span></div>
+            <div class="number n10"><span>10</span></div>
+            <div class="number n11"><span>11</span></div>
+            <div class="number n12"><span>12</span></div>
+        </div>
+
+        <div id="hour" class="hand hour-hand"></div>
+        <div id="minute" class="hand minute-hand"></div>
+        <div id="second" class="hand second-hand"></div>
+        
+        <div id="digital" class="digital-time">00:00:00</div>
+    </div>
+
+    <script>
+        function updateClock() {
+            const now = new Date();
+            
+            const seconds = now.getSeconds();
+            const minutes = now.getMinutes();
+            const hours = now.getHours();
+
+            // Berechnung der Winkel (Degrees)
+            // Sekunden: 360 / 60 = 6 Grad pro Sekunde
+            const secondDeg = (seconds / 60) * 360;
+            
+            // Minuten: 6 Grad pro Minute + Anteil der Sekunden
+            const minuteDeg = (minutes / 60) * 360 + (seconds / 60) * 6;
+            
+            // Stunden: 30 Grad pro Stunde (360/12) + Anteil der Minuten
+            const hourDeg = ((hours % 12) / 12) * 360 + (minutes / 60) * 30;
+
+            document.getElementById('second').style.transform = `rotate(${secondDeg}deg)`;
+            document.getElementById('minute').style.transform = `rotate(${minuteDeg}deg)`;
+            document.getElementById('hour').style.transform = `rotate(${hourDeg}deg)`;
+
+            // Digitale Anzeige formatieren
+            const h = hours.toString().padStart(2, '0');
+            const m = minutes.toString().padStart(2, '0');
+            const s = seconds.toString().padStart(2, '0');
+            document.getElementById('digital').textContent = `${h}:${m}:${s}`;
+        }
+
+        // Taktung: Alle 1000ms aktualisieren
+        setInterval(updateClock, 1000);
+        updateClock(); // Sofortiger Start
+    </script>
+</body>
+</html>

@@ -46,6 +46,27 @@ const HilfeContent = [
         `
     },
     {
+        id: 'individual',
+        title: 'Anpassung (lokal)',
+        icon: '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m10 0a2 2 0 100-4m0 4a2 2 0 110-4m-4 6v2m-6-6H4m16 0h-2m-3 0h-5.5" /></svg>',
+        content: `
+            <h3 class="font-bold text-[#004f62] text-lg mb-3">Individuelle Werkzeuge</h3>
+            <div class="prose text-gray-600 text-sm space-y-3">
+                <p>Du kannst die Kreidetafel+ mit eigenen Links erweitern, die im Menü <span class="text-emerald-600 font-bold">smaragdgrün</span> hervorgehoben werden.</p>
+                <p><strong>Technischer Hinweis:</strong> Externe Inhalte werden über sogenannte <b>iFrames</b> eingebettet. Bitte beachte, dass einige Webseiten (z.B. Google oder Wikipedia) die Anzeige in iFrames aus Sicherheitsgründen blockieren.</p>
+                <p><strong>So geht's:</strong></p>
+                <ol class="list-decimal pl-5 space-y-1">
+                    <li>Öffne den Ordner <code>setup-individual</code>.</li>
+                    <li>Bearbeite die Datei <code>tools-individual.js</code>.</li>
+                    <li>Trage dort deine schuleigenen Links (Cloud, Pad, etc.) ein.</li>
+                </ol>
+                <p class="bg-blue-50 p-2 rounded border border-blue-200 text-xs italic">
+                    Tipp: Eine detaillierte Anleitung findest du <a href="./setup_guide.html" target="_blank" class="text-blue-700 font-bold underline hover:text-[#004f62]">hier direkt</a> oder im Tools-Menü unter "Setup Hilfe".
+                </p>
+            </div>
+        `
+    },
+    {
         id: 'groups',
         title: 'Gruppen bilden',
         icon: '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>',
